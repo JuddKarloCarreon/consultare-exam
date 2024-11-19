@@ -1,6 +1,6 @@
 ## Consultare Exam
 # Notes
-This uses MySQL due to my prior freelance work with Consultare utilizing it. The default database name is consultareexam. Check database credentials in the .env file.
+This uses MySQL due to my prior freelance work with Consultare utilizing it. Please ensure the database name isn't currently in use. The default database name is consultareexam. Check database credentials in the .env file.
 
 As per the instructions, changes to the database will show to all users via Websockets. Specifically via laravel reverb.
 
