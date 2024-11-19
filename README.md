@@ -25,9 +25,13 @@ As per the instructions, changes to the database will show to all users via Webs
 Please see notes regarding the database.
 
 Run the commands:
+
 npm intall
+
 composer install
+
 npm run build
+
 php artisan migrate
 
 # To Run
