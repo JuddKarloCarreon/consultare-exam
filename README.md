@@ -12,6 +12,15 @@ As per the instructions, changes to the database will show to all users via Webs
  - Detects if currently being edited task is deleted by another user.
  - Task status filtering (All, Completed, Pending)
 
+## Database Structure
+### Tasks Table
+ - id: bigint, auto increment
+ - title: varchar(255)
+ - description: text, nullable
+ - status: tinyint(1), default(0)
+ - created_at: timestamp, nullable (automatically inputted/modified by laravel)
+ - updated_at: timestamp, nullable (automatically inputted/modified by laravel)
+
 # Installation
 Please see notes regarding the database.
 
