@@ -29,7 +29,7 @@ Run the commands:
 npm intall\
 composer install\
 npm run build\
-php artisan migrate\
+php artisan migrate
 
 # To Run
 Ensure MySQL is running.
