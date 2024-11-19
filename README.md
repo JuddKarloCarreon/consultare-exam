@@ -13,6 +13,8 @@ As per the instructions, changes to the database will show to all users via Webs
  - Task status filtering (All, Completed, Pending)
 
 # Installation
+Please see notes regarding the database.
+
 Run the commands:
 npm intall
 composer install
@@ -20,9 +22,13 @@ npm run build
 php artisan migrate
 
 # To Run
+Ensure MySQL is running.
+
 run commands on different command lines:
-php artisan serve
-php artisan reverb:start
+ - php artisan serve
+ - php artisan reverb:start
+
+Access localhost:8000
 
 <p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
 

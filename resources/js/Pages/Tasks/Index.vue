@@ -23,8 +23,21 @@ let displayRefresh;
 // Websocket for all users to have live data for whenever it's changed by any user.
 Echo.channel('update-tasks')
     .listen('.update', async (data) => {
-        // Replace data set and display
-        tasks.value = (typeof data === 'object') ? data.tasks : data;
+        // Get new tasks
+        let newTasks = (typeof data === 'object') ? data.tasks : data;
+        // Filter tasks
+        if (filter.value === 'All') {
+            tasks.value = newTasks;
+        } else {
+            let filterVal = (filter.value === 'Completed') ? true : false;
+            let filteredTasks = [];
+            newTasks.forEach((task) => {
+                if (task.status == filterVal) {
+                    filteredTasks.push(task);
+                }
+            });
+            tasks.value = filteredTasks;
+        }
         updateTasks();
         display();
     });
