@@ -1,41 +1,31 @@
 <script setup>
 import { Head } from '@inertiajs/vue3';
-import { ref, reactive, onMounted, onUnmounted, watch, computed, nextTick } from 'vue';
-import TextInput from '@/Components/TextInput.vue';
-import TextArea from '@/Components/TextArea.vue';
+import { ref, reactive, onMounted, onUnmounted, nextTick } from 'vue';
 import TaskStatus from '@/Components/Task/TaskStatus.vue';
-import TaskText from '@/Components/Task/TaskText.vue';
-import InputError from '@/Components/InputError.vue';
-import InputLabel from '@/Components/InputLabel.vue';
-import PrimaryButton from '@/Components/PrimaryButton.vue';
+import TaskForm from '@/Components/Task/TaskForm.vue';
 import Axios from 'axios';
 
-// refresh and errors console log $errors filter tasks based on status
+// turn add task to modal
 
 // Container the values to add tasks
-const addForm = reactive({
-    title: '',
-    description: ''
-});
-// Container for error messages due to form submission
-const formErrors = reactive({
-    title: null,
-    description: null
-});
+const taskForm = ref();
+// Indicator for when the a task currently being edited has been deleted by another user
+const deleted = ref(false);
 // Contains the filter value for the status
 const filter = ref('All');
 // Container for all the tasks
 const tasks = ref([]);
+// Used to change the key of the task to force refresh the data
+const keyBase = ref(0);
 // Handles display of refresh message in case of long loading times
 let displayRefresh;
 
 // Websocket for all users to have live data for whenever it's changed by any user.
 Echo.channel('update-tasks')
     .listen('.update', async (data) => {
-        // Clear old data set, let DOM rerender, then add new data set and display
-        tasks.value = [];
-        await nextTick();
+        // Replace data set and display
         tasks.value = (typeof data === 'object') ? data.tasks : data;
+        updateTasks();
         display();
     });
 
@@ -44,25 +34,6 @@ function cycleFilter() {
     filter.value = (filter.value === 'All') ? 'Pending' : (filter.value === 'Pending') ? 'Completed' : 'All';
     loading();
     getTasks();
-}
-// Add a new task to the database
-function store() {
-    loading();
-    Axios.post('/task/create', addForm)
-        .catch(error => {
-            if (error.response) {                
-                // Displays form Errors
-                Object.entries(error.response.data.errors).forEach(([key, value]) => {
-                    formErrors[key] = value;
-                });
-            } else {
-                // Something happened in setting up the request that triggered an Error
-                console.log('Error', error.message);
-            }
-            display();
-        });
-    addForm.title = '';
-    addForm.description = '';
 }
 // Handles deletion of data
 function clickDelete(e, task) {
@@ -82,15 +53,19 @@ function getTasks() {
         })
         .catch(error => console.log(error));
 }
+// Animates the description and edit icon to show/hide
+function clickDesc(e) {
+    const parent = $(e.target).closest('div.text-parent');
+    const description = parent.find('pre.description');
+    const edit = parent.find('.edit-button');
+    description.toggle();
+    edit.toggle(200);
+}
 // Shows the loading screen while fetching the task data
 function loading() {
     $('#loading').html('Loading...');
     $('#loading').show();
     $('#tasks-data').hide();
-    // Clear errors
-    Object.keys(formErrors).forEach((key) => {
-        formErrors[key] = null;
-    });
     // Display new message for long loading times after 5s
     displayRefresh = setTimeout(() => {
         $('#loading').html('Websocket broadcast not received. Please refresh page to reset connection.');
@@ -101,6 +76,22 @@ function display() {
     clearTimeout(displayRefresh);
     $('#loading').hide();
     $('#tasks-data').show();
+}
+async function updateTasks() {
+    // This rerenders the tasks
+    keyBase.value++;
+    await nextTick();
+    // Check if a deleted task is being edited
+    if (taskForm.value && taskForm.value.id) {
+        if ($(`#task-${taskForm.value.id}`).length < 1) {
+            deleted.value = true;
+        }
+    }
+}
+function cancelForm() {
+    updateTasks();
+    taskForm.value = null;
+    if (deleted.value) deleted.value = false;
 }
 
 // Get the tasks when the page first loads
@@ -115,35 +106,38 @@ onUnmounted(() => {
     <Head title="Task Manager" />
     <main class="flex h-screen">
         <div class="m-auto min-w-[35rem] w-4/5">
-            <p>Notes: Click on a task to show description or edit. Click on status to filter</p>
+            <p>Notes: Click on a task to show description. Click on status to filter, plus to add task, pen to edit, and trash to delete</p>
             <div class="flex flex-col border-solid border-2 border-slate-500 rounded-lg min-h-[30rem] max-h-80 p-1 overflow-y-auto overflow-x-hidden">
-                <form class="flex" @submit.prevent="store">
-                    <InputLabel for="title" value="Add:" class="me-3 ms-1 mt-3 text-lg" />
-                    <div class="flex flex-col gap-y-2 mb-2 flex-grow">
-                        <TextInput  v-model="addForm.title" placeholder="Title" id="title" required />
-                        <InputError v-for="error in formErrors.title" :message="error" />
-                        <div v-if="addForm.title !== '' || formErrors.description != null" class="flex flex-col gap-y-2">
-                            <TextArea v-model="addForm.description" placeholder="Description" />
-                            <InputError v-for="error in formErrors.description" :message="error" />
-                            <PrimaryButton type="submit" :disabled="addForm.processing">Submit</PrimaryButton>
-                        </div>
-                    </div>
-                </form>
                 <div id="loading">
                     Loading...
                 </div>
                 <table id="tasks-data" class="table-auto w-full hidden">
                     <thead>
                         <tr class="border-b border-slate-400">
+                            <th class="w-0 cursor-pointer px-1 border-r border-slate-400">
+                                <svg class="size-6 text-cyan-700" @click="() => taskForm = { title: '', description: '' }" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v6m3-3H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                                </svg>
+                            </th>
                             <th>Task</th>
                             <th class="w-0 cursor-pointer whitespace-nowrap px-3" @click="cycleFilter">Status: {{ filter }}</th>
                             <th class="w-0">Delete</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <tr v-for="task in tasks" class="rounded-lg hover:bg-slate-300 px-2 border-b border-slate-400" :id="'task-' + task.id" :key="task.id">
-                            <td>
-                                <TaskText :task="task" @update-load="loading" />
+                        <tr v-for="task in tasks" class="rounded-lg hover:bg-slate-300 px-2 border-b border-slate-400" :id="'task-' + task.id" :key="keyBase + '-' + task.id">
+                            <td class="border-r border-slate-400">
+                                <svg class="size-5 cursor-pointer mx-auto" @click="() => taskForm = task" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125" />
+                                </svg>
+                            </td>
+                            <td class="ps-1">
+                                <div class="flex text-parent">
+                                    <div @click="clickDesc" class="grow text">
+                                        {{ task.title }}
+                                        <pre :class="['description hidden ps-2', {'text-slate-500': !task.description}]">{{ (task.description) ? task.description : 'No Description' }}</pre>
+                                    </div>
+                                </div>
                             </td>
                             <td class="whitespace-nowrap align-middle px-2 text-center">
                                 <TaskStatus :status="task.status" :id="task.id" @update-load="loading" />
@@ -158,5 +152,6 @@ onUnmounted(() => {
                 </table>
             </div>
         </div>
+        <TaskForm v-if="taskForm" :task="taskForm" :deleted="deleted" @refresh="cancelForm" />
     </main>
 </template>

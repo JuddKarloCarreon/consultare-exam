@@ -19,10 +19,8 @@ class TasksController extends Controller
     public function create(Request $request)
     {
         // Validate data
-        $request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'nullable|string|max:65535',
-        ]);
+        $this->validate($request);
+
         $tasks = ['title' => $request->title, 'description'=> $request->description];
 
         // Create new task
@@ -56,6 +54,11 @@ class TasksController extends Controller
     // Handles the update of the status
     public function updateStatus(Request $request, $id)
     {
+        // Validate data
+        $request->validate([
+            'status' => 'required|boolean',
+        ]);
+        
         DB::table('tasks')
             ->where('id', $id)
             ->update(['status' => $request->status]);
@@ -65,6 +68,9 @@ class TasksController extends Controller
     // Handles the update of the task aside from the status
     public function update(Request $request, $id)
     {
+        // Validate data
+        $this->validate($request);
+
         DB::table('tasks')
         ->where('id', $id)
         ->update([
@@ -89,13 +95,20 @@ class TasksController extends Controller
     {
         $tasks = $this->read();
 
+        // Use this if prefer to use Events
+        broadcast(new updateTasks($tasks));
+        
         // Use this if you don't like using events
         // Broadcast::on('update-tasks')
         //     ->as('update')
         //     ->with($tasks)
         //     ->sendNow();
-
-        // Use this if prefer to use Events
-        broadcast(new updateTasks($tasks));
+    }
+    // Handles data validation
+    private function validate(Request $request) {
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'nullable|string|max:65535',
+        ]);
     }
 }

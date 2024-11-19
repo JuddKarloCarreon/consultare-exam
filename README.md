@@ -1,3 +1,29 @@
+## Consultare Exam
+# Notes
+This uses MySQL due to my prior freelance work with Consultare utilizing it. The default database name is consultareexam. Check database credentials in the .env file.
+
+As per the instructions, changes to the database will show to all users via Websockets. Specifically via laravel reverb.
+
+# Features
+ - Task with title, description, and completion status.
+ - Task CRUD.
+ - Real-time task data view/updates via websockets.
+ - Click task to show/hide description
+ - Detects if currently being edited task is deleted by another user.
+ - Task status filtering (All, Completed, Pending)
+
+# Installation
+Run the commands:
+npm intall
+composer install
+npm run build
+php artisan migrate
+
+# To Run
+run commands on different command lines:
+php artisan serve
+php artisan reverb:start
+
 <p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
 
 <p align="center">
@@ -64,4 +90,3 @@ If you discover a security vulnerability within Laravel, please send an e-mail t
 ## License
 
 The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
-# consultare-exam

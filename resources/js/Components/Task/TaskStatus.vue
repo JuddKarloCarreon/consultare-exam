@@ -30,6 +30,6 @@ function updateStatus() {
 </script>
 
 <template @click="click">
-    <Checkbox :checked="status" v-model="status" :id="'check-' + props.id" @change="updateStatus" />
-    <InputLabel :value="status ? 'Completed' : 'Pending'" :for="'check-' + props.id" class="inline-block ms-2 top-px relative" />
+    <Checkbox class="cursor-pointer" :checked="status" v-model="status" :id="'check-' + props.id" @change="updateStatus" />
+    <InputLabel :value="status ? 'Completed' : 'Pending'" :for="'check-' + props.id" class="inline-block ms-2 top-px relative select-none cursor-pointer" />
 </template>
