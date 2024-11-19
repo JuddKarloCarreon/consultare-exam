@@ -26,13 +26,10 @@ Please see notes regarding the database.
 
 Run the commands:
 
-npm intall
-
-composer install
-
-npm run build
-
-php artisan migrate
+npm intall\
+composer install\
+npm run build\
+php artisan migrate\
 
 # To Run
 Ensure MySQL is running.
